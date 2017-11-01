@@ -4,8 +4,8 @@
       "type": "eventHubTrigger",
       "name": "eventHubMessages",
       "direction": "in",
-      "path": "IoTHubAN",
-      "connection": "IoTHubAN_events_IOTHUB",
+      "path": "mwiothubTest",
+      "connection": "Endpoint=sb://iothub-ns-mwiothubte-251667-50963c714b.servicebus.windows.net/;EntityPath=mwiothubtest;SharedAccessKeyName=service;SharedAccessKey=HUVLcGr/o0wYKBGtlgpl655PDRv3oK9dzBp2IcslLYE=",
       "cardinality": "many"
     }
   ],
