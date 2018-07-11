@@ -1,55 +1,41 @@
 'use strict';
-global.result = 0;
+
+var EventHubClient = require('azure-event-hubs').Client;
+var request = require('request');
+var azure = require('azure-storage');
+
+// Variable to store and use 'context' for logging
+global.context = 0;
+// Specify MPS url (worker or load balancer)
+var mpsurl = "http://54.162.175.233:9910/dewPointCalculator/dewPointCalculator";
+
 module.exports = function (context, eventHubMessages) {
-    context.log('Node.js eventhub trigger function processed work item', eventHubMessages);    
-    context.log('Message received and sent to MPS: ');  
-    context.log(JSON.stringify(eventHubMessages));
+    //Display the input message
+    context.log('Node.js eventhub trigger function processed work item', eventHubMessages);
+    //Store context variable for use in other functions
+    global.context = context;
+    //Send request to MPS to compute dewPoint
     request.post({headers: {"Content-Type": "application/json"}, 
     url: mpsurl,
     body: JSON.stringify({"nargout":1, 
     "rhs": JSON.stringify(eventHubMessages), 
     "outputFormat" : { "mode" : "large", "nanInfFormat" : "string" },
     })
-    }
-    ,callback);
-    
-    context.log('Result of compute:');
-    context.log(global.result);
+    },callback);
+    //Close the context
     context.done();
 };
 
-var EventHubClient = require('azure-event-hubs').Client;
-
-// Get Environment variable
- //var connectionString = getEnvironmentVariable("IoTHubReceiverConnectionString");
-var connectionString = 'Endpoint=sb://iothub-ns-mwiothubte-256617-24c5365670.servicebus.windows.net/;SharedAccessKeyName=iothubowner;SharedAccessKey=9oEjpfAooqs+O1b25X0UmpzBRy7y+3wQYsz7Myb3iF4=';
-// How do you install packages from AZ CLI to ensure that these packages can work?
-var request = require('request');
-var azure = require('azure-storage');
-
-var mpsurl = "http://IoTMPS-1723133731.us-east-1.elb.amazonaws.com:9910/dewPointCalculator/dewPointCalculator";
-//var mpsurl = "http://52" 
-
-var printError = function (err) {
-  console.log(err.message);
-};
-
 function callback(error, response, body){
-                if (!error && response.statusCode == 200){
-                  //context.log('In callback');
-                  var parsedResult = JSON.parse(body)
-                  //context.log(JSON.stringify(body));
-                  var mwdata = parsedResult.lhs[0].mwdata;
-                  global.result = mwdata;
-				          //context.log(mwdata);
-
-                  } else {
-                    context.log(response)
-                    context.log(error)
-                  }
-};
-
-function GetEnvironmentVariable(name)
-{
-	return process.env[name];
+    if (!error && response.statusCode == 200){        
+        //Parse the MPS response
+        var parsedResult = JSON.parse(body);
+        //Extract the value of interest
+        var mwdata = parsedResult.lhs[0].mwdata;
+        //Display the result to the log  
+        global.myVar.log('Dew Point:', mwdata);
+        } else {
+        global.myVar.log(response)
+        global.myVar.log(error)
+        }
 };
